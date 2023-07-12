@@ -7,6 +7,7 @@ from flask import Flask, jsonify,  request, render_template,session,redirect
 from flask_sqlalchemy import SQLAlchemy
 import json
 app = Flask(__name__)
+#cambiar a SQL
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Micontra123@localhost:5432/postgres'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://usuario:password@localhost:5432/proyecto'

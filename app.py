@@ -15,7 +15,7 @@ def route_personas():
         persona = PERSONA(username=data["username"], correo=data["correo"], password=data["password"])
         db.session.add(persona)
         db.session.commit()
-        return 'SUCCESS'
+        return jsonify(persona)
     
 @app.route('/personas/<personas_id>', methods=['GET', 'PUT', 'DELETE'])
 def route_personas_id(personas_id):
@@ -56,7 +56,7 @@ def route_usuarios():
     
     if request.method == 'POST':
         data = request.get_json()
-        usuario = USUARIO(username=data["username"], password=data["password"])
+        usuario = USUARIO(username=data["username"], correo = data["correo"],password=data["password"])
         db.session.add(usuario)
         db.session.commit()
         return 'SUCCESS'
@@ -111,14 +111,26 @@ def route_stickers():
 @app.route('/stickers/<idsticker>', methods=['GET'])
 def route_stickers_id(idsticker):
     if request.method == 'GET':
-        stickersid = STICKER.query.filter_by(idsticker=idsticker)
+        stickersid = STICKER.query.filter_by(idsticker=idsticker).first()
         return jsonify(stickersid)
 
 @app.route('/stickers-creador/<creador_id>', methods = ['GET', 'POST', 'DELETE'])
 def route_stickers_creador_id(creador_id):
     if request.method=='GET':
-        filas = STICKER.query.filter_by(S_CREADOR_id=creador_id).all()
-        return jsonify(filas)
+        key = 'getStickers'
+        if key not in cache.keys():
+            dbResponse = STICKER.query.filter_by(S_CREADOR_id=creador_id).all()
+            cache[key] = dbResponse;
+            print("From DB")
+        else:
+            print("From Cache")
+    
+        stickers = cache[key];
+        response = ""
+        for sticker in stickers:
+            response += sticker.nombre+";"+sticker.descripcion+";"+sticker.categoria+";"+sticker.likes+";"+sticker.Foto+";"+sticker.FechaSubida
+        return jsonify(response)
+
     elif request.method == 'POST':
         data = request.get_json()
         sticker = STICKER(nombre=data["nombre"],descripcion=data["descripcion"], categoria=data["categoria"], likes = 0, Foto=data["Foto"], FechaSubida=func.now(), S_CREADOR_id = creador_id)
@@ -146,10 +158,10 @@ def registeruser():
             new_usuario = USUARIO(usuario_id = new_persona.id)
             db.session.add(new_usuario)
             db.session.commit()
-            return 'SUCCESS'
+            return jsonify(new_persona)
         except:
             error_message = 'Ya existe este nombre de usuario.'
-            return render_template('register.html', error_message=error_message)
+            return error_message
 
 @app.route('/register-creador', methods=['GET', 'POST'])
 def registercreador():
@@ -165,24 +177,24 @@ def registercreador():
             new_usuario = CREADOR(creador_id = new_persona.id)
             db.session.add(new_usuario)
             db.session.commit()
-            return 'SUCCESS'
+            return jsonify(new_persona)
         except:
             error_message = 'Ya existe este nombre de usuario.'
-            return render_template('register.html', error_message=error_message)
+            return error_message
 
-@app.route('/login', methods=['GET'])
+
+@app.route('/login', methods=['POST'])
 def login():
-    if request.method == 'GET':
+    if request.method == 'POST':
         data = request.get_json()
         username = data['username']
         password = data['password']
         persona = PERSONA.query.filter_by(username=username).first()
         if persona is None:
             return 'No existe este nombre de usuario.'
-            return render_template('login.html', error_message=error_message)
         else:
             if persona.password == password:
-                return 'SUCCESS'
+                return jsonify(persona)
             else:
                 return 'Contraseña incorrecta.'
         
