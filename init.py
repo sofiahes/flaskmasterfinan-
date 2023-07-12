@@ -7,13 +7,10 @@ from flask import Flask, jsonify,  request, render_template,session,redirect
 from flask_sqlalchemy import SQLAlchemy
 import json
 app = Flask(__name__)
-#cambiar a SQL
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Micontra123@localhost:5432/postgres'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://usuario:password@localhost:5432/proyecto'
-
-app.config['SQLALCHEMY<@_TRACK_MODIFICATIONS'] = False
-
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123@localhost:5432/postgres'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
@@ -78,7 +75,6 @@ class STICKER(db.Model):
     likes: int
     Foto:str
     FechaSubida:str
-    
 
     idsticker = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nombre = db.Column(db.String(100), nullable=False)
@@ -100,7 +96,7 @@ class CARRITO(db.Model):
 
     idcarrito:int
 
-    idcarrito = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    idcarrito = db.Column(db.Integer, primary_key=True)
 
     CAR_USUARIO_id = db.Column(db.Integer, db.ForeignKey('USUARIO.usuario_id'), primary_key=True)
     rcarritoo_usuario = relationship("USUARIO", backref="CARRITO")
@@ -116,7 +112,7 @@ class COMENTARIO(db.Model):
     COM_STICKER_id: int
     texto: str
 
-    idcomentario = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    idcomentario = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.String(100), nullable=False)
 
     COM_STICKER_id = db.Column(db.Integer, db.ForeignKey('STICKER.idsticker'), primary_key=True)
@@ -139,7 +135,7 @@ class PUBLICA(db.Model):
 
     __table_args__ = (
         db.ForeignKeyConstraint(['P_COMENTARIO_id', 'P_STICKER_id'], ['COMENTARIO.idcomentario', 'COMENTARIO.COM_STICKER_id']),
-    )
+    )   
 
     r_sticker_publica= relationship("COMENTARIO", backref="PUBLICA")
     r_persona_publica = relationship("PERSONA", backref="PUBLICA")
@@ -174,10 +170,9 @@ def insert_creador(data):
     return "SUCCESS"
 
 
-
 with app.app_context():
-        db.create_all()
+    db.create_all()
 
-if __name__ == '__main__':
-    #app.run(debug=True, port=5000, host='192.168.18.14')
-    app.run()
+# if __name__ == '__main__':
+#     app.run(debug=True, port=5001, host='0.0.0.0')
+#     #app.run()
